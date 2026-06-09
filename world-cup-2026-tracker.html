@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>World Cup 2026 — Family Tracker</title>
+<style>
+:root{ color-scheme: light; --bg:#f4f6fb; --panel:#ffffff; --ink:#16213e; --muted:#6b7794;
+  --line:#e4e8f2; --accent:#2563eb; --gk:#f59e0b; --df:#3b82f6; --mf:#10b981; --fw:#ef4444;
+  --gold:#f5b301; --purple:#8b5cf6; --blue:#3b82f6; --grey:#94a3b8; }
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  background:var(--bg);color:var(--ink);line-height:1.45;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1140px;margin:0 auto;padding:14px}
+header.top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:6px 2px 14px}
+header.top h1{font-size:24px;font-weight:800;letter-spacing:-.3px}
+.trophy{font-size:28px}
+.subtitle{color:var(--muted);font-size:13px;font-weight:600}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;position:sticky;top:0;z-index:30;
+  background:var(--bg);padding:8px 0}
+.tab{border:1px solid var(--line);background:var(--panel);color:var(--muted);font-weight:700;
+  font-size:14px;padding:9px 16px;border-radius:999px;cursor:pointer;transition:.15s}
+.tab:hover{border-color:var(--accent);color:var(--accent)}
+.tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.view{display:none;animation:fade .25s ease}
+.view.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.note{background:#eef3ff;border:1px solid #d4e0ff;border-radius:12px;padding:12px 14px;font-size:13px;
+  color:#36507f;margin-bottom:16px}
+.note b{color:#1d3a73}
+
+/* GROUPS */
+.groups-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px}
+.gcard{background:var(--panel);border:1px solid var(--line);border-radius:16px;overflow:hidden;
+  box-shadow:0 1px 3px rgba(20,33,62,.05)}
+.ghead{padding:10px 14px;font-weight:800;font-size:15px;background:linear-gradient(135deg,#1e293b,#334155);
+  color:#fff;display:flex;justify-content:space-between;align-items:center}
+.ghead .gtag{font-size:11px;opacity:.7;font-weight:700}
+table.stand{width:100%;border-collapse:collapse;font-size:13px}
+table.stand th{font-size:10px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);
+  font-weight:700;padding:7px 4px;border-bottom:1px solid var(--line);text-align:center}
+table.stand th.teamcol{text-align:left;padding-left:12px}
+table.stand td{padding:7px 4px;text-align:center;border-bottom:1px solid var(--line)}
+table.stand tr:last-child td{border-bottom:none}
+table.stand td.teamcol{text-align:left;padding-left:12px;font-weight:700;cursor:pointer}
+table.stand td.teamcol:hover{color:var(--accent)}
+.qual td{background:#f0fdf4}
+.pos{display:inline-flex;width:18px;height:18px;border-radius:50%;background:#eef1f7;color:var(--muted);
+  font-size:11px;font-weight:800;align-items:center;justify-content:center;margin-right:6px}
+.qual .pos{background:#16a34a;color:#fff}
+.fx{font-size:12px;padding:10px 14px;border-top:1px solid var(--line);background:#fafbfe}
+.fx .frow{display:flex;justify-content:space-between;padding:3px 0;color:var(--muted)}
+.fx .frow b{color:var(--ink)}
+.fx .sc{font-weight:800;color:var(--ink)}
+
+/* TEAMS GRID */
+.teams-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.tcard{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 10px;
+  text-align:center;cursor:pointer;transition:.15s;position:relative;overflow:hidden}
+.tcard:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(20,33,62,.12);border-color:var(--accent)}
+.tcard .fl{font-size:38px;line-height:1}
+.tcard .nm{font-weight:800;font-size:13px;margin-top:6px}
+.tcard .gp{font-size:10px;color:var(--muted);font-weight:700;margin-top:2px}
+.tcard .st{font-size:11px;color:var(--gold);margin-top:4px;letter-spacing:1px}
+.tcard .strip{position:absolute;top:0;left:0;right:0;height:4px}
+
+/* TEAM DETAIL */
+.back{display:inline-flex;align-items:center;gap:6px;background:var(--panel);border:1px solid var(--line);
+  border-radius:999px;padding:7px 14px;font-weight:700;font-size:13px;cursor:pointer;margin-bottom:14px}
+.back:hover{border-color:var(--accent);color:var(--accent)}
+.thead{display:flex;align-items:center;gap:16px;background:var(--panel);border:1px solid var(--line);
+  border-radius:18px;padding:18px 20px;margin-bottom:18px;flex-wrap:wrap}
+.thead .bigfl{font-size:60px}
+.thead .tinfo h2{font-size:24px;font-weight:800}
+.thead .tinfo .meta{color:var(--muted);font-size:13px;font-weight:600;margin-top:2px}
+.thead .stars{color:var(--gold);font-size:18px;letter-spacing:2px;margin-top:6px}
+.thead .tstats{margin-left:auto;display:flex;gap:18px}
+.tstat{text-align:center}
+.tstat .v{font-size:26px;font-weight:800}
+.tstat .l{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:700}
+.squad-note{font-size:12px;color:var(--muted);font-weight:600;margin:-6px 0 14px}
+
+/* PLAYER CARDS */
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:16px}
+.pcard{border-radius:16px;padding:3px;cursor:pointer;transition:.18s;position:relative}
+.pcard:hover{transform:translateY(-5px) scale(1.02)}
+.pcard .inner{background:#fff;border-radius:13px;padding:12px;height:100%;position:relative;overflow:hidden}
+.pcard .holo{position:absolute;inset:0;opacity:.16;background:
+  linear-gradient(115deg,transparent 20%,#fff 35%,transparent 50%,#fff 65%,transparent 80%);
+  background-size:300% 300%;animation:sheen 4.5s linear infinite;pointer-events:none}
+@keyframes sheen{0%{background-position:0% 0%}100%{background-position:200% 200%}}
+.pcard .ctop{display:flex;justify-content:space-between;align-items:flex-start;position:relative}
+.pcard .pname{font-weight:800;font-size:14px;line-height:1.15;max-width:120px}
+.pcard .hp{text-align:right;font-weight:800;font-size:12px;color:var(--muted)}
+.pcard .hp b{display:block;font-size:20px;color:var(--ink)}
+.posbadge{display:inline-block;font-size:10px;font-weight:800;color:#fff;padding:2px 8px;border-radius:999px;margin-top:4px}
+.pcard .art{text-align:center;margin:6px 0;position:relative}
+.pcard .art .avwrap{display:inline-block;border-radius:50%;padding:5px;background:radial-gradient(circle at 50% 36%,#ffffff 52%,#e7edf7);box-shadow:inset 0 0 0 1px rgba(0,0,0,.05)}
+.pcard .art svg{display:block;filter:drop-shadow(0 2px 2px rgba(0,0,0,.12))}
+.pcard .bars{position:relative}
+.barrow{display:flex;align-items:center;gap:6px;margin:5px 0;font-size:10px;font-weight:700;color:var(--muted)}
+.barrow .lab{width:26px}
+.bartrack{flex:1;height:7px;background:#eef1f7;border-radius:4px;overflow:hidden}
+.barfill{height:100%;border-radius:4px}
+.barval{width:22px;text-align:right;color:var(--ink);font-weight:800}
+.special{position:relative;margin-top:9px;padding-top:8px;border-top:1px dashed var(--line);font-size:11px}
+.special .slab{font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:800}
+.special .sname{font-weight:800;font-size:12px;margin-top:1px}
+.rarity{position:absolute;top:8px;left:50%;transform:translateX(-50%);font-size:8px;font-weight:800;
+  text-transform:uppercase;letter-spacing:1px;padding:2px 8px;border-radius:999px;z-index:3}
+.club{font-size:10px;color:var(--muted);font-weight:600;margin-top:6px;position:relative}
+.capbadge{font-size:9px;background:var(--gold);color:#fff;font-weight:800;padding:1px 5px;border-radius:4px;margin-left:4px}
+
+/* MODAL */
+.modal{display:none;position:fixed;inset:0;background:rgba(15,23,42,.6);z-index:100;
+  align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(3px)}
+.modal.open{display:flex}
+.modal .big{width:330px;max-width:92vw}
+.modal .pcard{transform:none!important}
+.modal .pcard .art svg{width:130px;height:130px}
+.modal .pcard .pname{font-size:20px;max-width:200px}
+.modclose{position:absolute;top:18px;right:22px;color:#fff;font-size:34px;cursor:pointer;font-weight:300}
+
+/* BRACKET */
+.bracket-scroll{overflow-x:auto;padding-bottom:10px}
+.bracket{display:flex;gap:18px;min-width:920px}
+.bcol{display:flex;flex-direction:column;justify-content:space-around;gap:10px;min-width:170px}
+.bcol h4{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);
+  font-weight:800;text-align:center;margin-bottom:4px}
+.bmatch{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;font-size:12px}
+.bteam{display:flex;justify-content:space-between;padding:7px 10px;font-weight:700}
+.bteam:first-child{border-bottom:1px solid var(--line)}
+.bteam.win{background:#f0fdf4;color:#15803d}
+.bteam .bs{font-weight:800}
+.bteam.tbd{color:var(--muted);font-weight:600;font-style:italic}
+.final-card{background:linear-gradient(135deg,#f5b301,#f59e0b);border:none;color:#fff}
+.final-card .bteam{color:#fff}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--muted);font-weight:700;margin:14px 0}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.dot{width:11px;height:11px;border-radius:3px;display:inline-block}
+/* TOOLTIP */
+.tip{position:fixed;z-index:200;background:#16213e;color:#fff;padding:9px 12px;border-radius:10px;
+  font-size:13px;line-height:1.35;pointer-events:none;opacity:0;transition:opacity .12s;
+  box-shadow:0 8px 22px rgba(15,23,42,.32);max-width:200px}
+.tt{cursor:pointer}
+/* FAVORITES */
+.fav{background:var(--panel);border:1px solid var(--line);border-radius:18px;margin-bottom:18px;overflow:hidden;
+  box-shadow:0 1px 3px rgba(20,33,62,.05)}
+.fav .fhead{display:flex;align-items:center;gap:14px;padding:16px 20px;color:#fff}
+.fav .fhead .ffl{font-size:46px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.25))}
+.fav .fhead h3{font-size:22px;font-weight:800}
+.fav .fhead .fmeta{font-size:12px;font-weight:600;opacity:.92}
+.fav .fhead .fstars{color:#ffe48a;letter-spacing:2px;margin-top:3px;font-size:15px}
+.fav .body{padding:14px 20px 20px}
+.fav h5{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);font-weight:800;margin:16px 0 8px}
+.pathrow{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.pathrow:last-child{border-bottom:none}
+.pathrow .pflag{font-size:26px}
+.pathrow .popp{font-weight:800;font-size:14px;min-width:118px}
+.pathrow .poppst{font-size:11px;color:#f5b301;min-width:58px;letter-spacing:1px}
+.tgt{font-size:11px;font-weight:800;color:#fff;padding:3px 10px;border-radius:999px;white-space:nowrap}
+.pathrow .pwhy{font-size:12.5px;color:var(--muted);flex:1;min-width:180px}
+.blurb{font-size:13.5px;line-height:1.6}
+.ceil{background:#f7f9fd;border-left:3px solid var(--accent);padding:11px 14px;border-radius:8px;
+  font-size:13px;line-height:1.62;color:#36507f}
+.watchchips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:5px;background:#eef3ff;border:1px solid #d4e0ff;border-radius:999px;
+  padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;color:#1d3a73;transition:.12s}
+.chip:hover{background:#dbe7ff;transform:translateY(-1px)}
+.foot{text-align:center;color:var(--muted);font-size:11px;padding:24px 0 12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <span class="trophy">🏆</span>
+    <div>
+      <h1>World Cup 2026 — Family Tracker</h1>
+      <div class="subtitle">USA · Canada · Mexico &nbsp;|&nbsp; June 11 – July 19, 2026 &nbsp;|&nbsp; <span id="lastup"></span></div>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" data-v="groups">📊 Groups</button>
+    <button class="tab" data-v="favorites">⭐ Our Teams</button>
+    <button class="tab" data-v="teams">🌍 Teams &amp; Cards</button>
+    <button class="tab" data-v="bracket">🗺️ Bracket</button>
+    <button class="tab" data-v="how">ℹ️ How it works</button>
+  </div>
+
+  <!-- GROUPS -->
+  <div class="view active" id="view-groups">
+    <div class="note">📅 <b>Tournament starts June 11.</b> Standings are at zero until the games kick off. Ask me to "update the World Cup tracker" after match days and I'll fill in scores and re-rank every group. <b>Top 2 of each group</b> (green) plus the <b>8 best 3rd-place teams</b> reach the Round of 32. &nbsp;💡 <i>Hover any team to see its star rating.</i></div>
+    <div class="groups-grid" id="groupsGrid"></div>
+  </div>
+
+  <!-- TEAMS -->
+  <div class="view" id="view-teams">
+    <div id="teamsList">
+      <div class="note">⭐ Tap any team to meet their players. <b>South Korea, USA, New Zealand, Brazil, Argentina &amp; France</b> have full squads — everyone else shows their star players. Cards: <b>HP = stamina/engine</b>, <b>MP = skill</b> (for their position), plus a <b>signature move</b>.</div>
+      <div class="teams-grid" id="teamsGrid"></div>
+    </div>
+    <div id="teamDetail" style="display:none"></div>
+  </div>
+
+  <!-- FAVORITES -->
+  <div class="view" id="view-favorites">
+    <div class="note">⭐ <b>Our teams.</b> Korea, USA, New Zealand and France — their road through the group, an honest take on how far they can realistically go, and who to watch. Tap a player chip to pop their card.</div>
+    <div id="favList"></div>
+  </div>
+
+  <!-- BRACKET -->
+  <div class="view" id="view-bracket">
+    <div class="note">🗺️ The knockout bracket unlocks when the group stage ends (around June 27). It'll fill in here as I update results. For now it shows the empty road to the final in <b>New York / New Jersey on July 19</b>.</div>
+    <div class="legend">
+      <span><span class="dot" style="background:var(--gk)"></span>Goalkeeper</span>
+      <span><span class="dot" style="background:var(--df)"></span>Defender</span>
+      <span><span class="dot" style="background:var(--mf)"></span>Midfielder</span>
+      <span><span class="dot" style="background:var(--fw)"></span>Forward</span>
+    </div>
+    <div class="bracket-scroll"><div class="bracket" id="bracket"></div></div>
+  </div>
+
+  <!-- HOW -->
+  <div class="view" id="view-how">
+    <div class="note" style="line-height:1.7">
+      <b>How to use this with the kids</b><br>
+      • <b>Groups tab</b> — the live league tables for all 12 groups. Green rows are heading to the knockouts.<br>
+      • <b>Teams &amp; Cards tab</b> — tap a flag to see the squad. Tap any player card to blow it up full-size.<br>
+      • <b>Bracket tab</b> — the single-elimination road to the trophy.<br><br>
+      <b>What the card stats mean</b> (and they're tuned to be fair, not random):<br>
+      • <b>HP — Stamina &amp; engine.</b> How much a player runs, presses and lasts. Box-to-box midfielders and flying fullbacks score high; veteran playmakers and pure poachers score lower.<br>
+      • <b>MP — Skill for their position.</b> A keeper's MP is shot-stopping; a defender's is reading the game; a forward's is finishing &amp; flair. So you can't directly compare a keeper's MP to a striker's — each is judged against their own job.<br>
+      • <b>Signature Move</b> — the real-life thing that player is famous for, with a bit of fun.<br>
+      • <b>Card colour</b> = rarity by skill: <b>Legendary</b> (gold), <b>Epic</b> (purple), <b>Rare</b> (blue), <b>Common</b> (grey).<br><br>
+      <b>Keeping it current:</b> just say <i>"update the World Cup tracker"</i> after games. I'll pull the latest scores, recompute the tables, and advance the bracket. You don't have to type anything in yourself.
+    </div>
+  </div>
+
+  <div class="foot">Made for family World Cup season ⚽ · Stats are hand-tuned opinions, not official ratings · Squads per official June 2026 announcements</div>
+</div>
+
+<div class="modal" id="modal"><span class="modclose" id="modclose">&times;</span><div class="big" id="modalBody"></div></div>
+<div class="tip" id="tip"></div>
+
+<script>
+/* ============ DATA ============ */
+const LAST_UPDATED = "Updated June 9, 2026 — avatars + Our Teams · pre-tournament";
+
+const GROUPS = {
+ A:["Mexico","South Korea","South Africa","Czechia"],
+ B:["Canada","Switzerland","Qatar","Bosnia & Herzegovina"],
+ C:["Brazil","Morocco","Haiti","Scotland"],
+ D:["United States","Paraguay","Australia","Türkiye"],
+ E:["Germany","Curaçao","Ivory Coast","Ecuador"],
+ F:["Netherlands","Japan","Sweden","Tunisia"],
+ G:["Belgium","Egypt","Iran","New Zealand"],
+ H:["Spain","Cape Verde","Saudi Arabia","Uruguay"],
+ I:["France","Iraq","Norway","Senegal"],
+ J:["Argentina","Algeria","Austria","Jordan"],
+ K:["Portugal","DR Congo","Uzbekistan","Colombia"],
+ L:["England","Croatia","Ghana","Panama"]
+};
+
+// team: [flag, confederation, stars, primaryColor]
+const TEAMS = {
+ "Mexico":["🇲🇽","CONCACAF",3.5,"#0b6e4f"], "South Korea":["🇰🇷","AFC",3,"#c8102e"],
+ "South Africa":["🇿🇦","CAF",2.5,"#007a4d"], "Czechia":["🇨🇿","UEFA",3,"#11457e"],
+ "Canada":["🇨🇦","CONCACAF",3.5,"#d52b1e"], "Switzerland":["🇨🇭","UEFA",4,"#d52b1e"],
+ "Qatar":["🇶🇦","AFC",2.5,"#8a1538"], "Bosnia & Herzegovina":["🇧🇦","UEFA",3,"#002395"],
+ "Brazil":["🇧🇷","CONMEBOL",5,"#fed100"], "Morocco":["🇲🇦","CAF",4,"#c1272d"],
+ "Haiti":["🇭🇹","CONCACAF",2,"#00209f"], "Scotland":["🏴󠁧󠁢󠁳󠁣󠁴󠁿","UEFA",3,"#005eb8"],
+ "United States":["🇺🇸","CONCACAF",3.5,"#1c3a70"], "Paraguay":["🇵🇾","CONMEBOL",3,"#d52b1e"],
+ "Australia":["🇦🇺","AFC",3,"#00843d"], "Türkiye":["🇹🇷","UEFA",3.5,"#e30a17"],
+ "Germany":["🇩🇪","UEFA",4.5,"#1a1a1a"], "Curaçao":["🇨🇼","CONCACAF",1.5,"#002b7f"],
+ "Ivory Coast":["🇨🇮","CAF",3.5,"#f77f00"], "Ecuador":["🇪🇨","CONMEBOL",3.5,"#ffd100"],
+ "Netherlands":["🇳🇱","UEFA",4.5,"#f36c21"], "Japan":["🇯🇵","AFC",3.5,"#bc002d"],
+ "Sweden":["🇸🇪","UEFA",3.5,"#006aa7"], "Tunisia":["🇹🇳","CAF",2.5,"#e70013"],
+ "Belgium":["🇧🇪","UEFA",4,"#e30613"], "Egypt":["🇪🇬","CAF",3.5,"#c8102e"],
+ "Iran":["🇮🇷","AFC",3,"#239f40"], "New Zealand":["🇳🇿","OFC",2,"#1b1b1b"],
+ "Spain":["🇪🇸","UEFA",5,"#c60b1e"], "Cape Verde":["🇨🇻","CAF",2,"#003893"],
+ "Saudi Arabia":["🇸🇦","AFC",2.5,"#006c35"], "Uruguay":["🇺🇾","CONMEBOL",4,"#5ba4dc"],
+ "France":["🇫🇷","UEFA",5,"#1f4ea1"], "Iraq":["🇮🇶","AFC",2,"#007a3d"],
+ "Norway":["🇳🇴","UEFA",4,"#ba0c2f"], "Senegal":["🇸🇳","CAF",4,"#00853f"],
+ "Argentina":["🇦🇷","CONMEBOL",5,"#6cace4"], "Algeria":["🇩🇿","CAF",3,"#006233"],
+ "Austria":["🇦🇹","UEFA",3.5,"#ed2939"], "Jordan":["🇯🇴","AFC",2,"#007a3d"],
+ "Portugal":["🇵🇹","UEFA",4.5,"#006600"], "DR Congo":["🇨🇩","CAF",3,"#007fff"],
+ "Uzbekistan":["🇺🇿","AFC",2.5,"#1eb53a"], "Colombia":["🇨🇴","CONMEBOL",4,"#fcd116"],
+ "England":["🏴󠁧󠁢󠁥󠁮󠁧󠁿","UEFA",5,"#cf142b"], "Croatia":["🇭🇷","UEFA",4,"#ff0000"],
+ "Ghana":["🇬🇭","CAF",3,"#006b3f"], "Panama":["🇵🇦","CONCACAF",2.5,"#db0000"]
+};
+
+// player: [name, position, HP(stamina), MP(skill), signatureMove, captain?]
+const PLAYERS = {
+ // ===== FULL SQUADS (favorites) =====
+ "South Korea":[
+  ["Son Heung-min","FW",84,93,"Lightning Counter",1],["Cho Gue-sung","FW",80,76,"Target Tower"],
+  ["Oh Hyeon-gyu","FW",80,74,"Restless Runner"],["Lee Kang-in","MF",74,88,"Left-Foot Wand"],
+  ["Hwang Hee-chan","MF",86,82,"Bull Charge"],["Hwang In-beom","MF",80,82,"Deep Conductor"],
+  ["Lee Jae-sung","MF",82,80,"Engine Room"],["Bae Jun-ho","MF",79,78,"Wonderkid Spark"],
+  ["Yang Hyun-jun","MF",82,72,"Celtic Flyer"],["Paik Seung-ho","MF",78,76,"Tidy Tempo"],
+  ["Lee Dong-gyeong","MF",76,74,"Smart Link"],["Kim Jin-gyu","MF",76,70,"Ball-Winner"],
+  ["Eom Ji-sung","MF",78,72,"Box Crasher"],["Kim Min-jae","DF",85,84,"Monster Block"],
+  ["Jens Castrop","DF",80,72,"Korean-German Motor"],["Kim Moon-hwan","DF",78,68,"Overlap Engine"],
+  ["Seol Young-woo","DF",80,70,"Flank Sprinter"],["Lee Tae-seok","DF",75,66,"Young Stopper"],
+  ["Park Jin-seob","DF",74,64,"Steady Marker"],["Kim Tae-hyeon","DF",74,65,"Cover Defender"],
+  ["Lee Han-beom","DF",73,66,"Utility Back"],["Lee Ki-hyuk","DF",70,62,"Squad Depth"],
+  ["Cho Wi-je","DF",70,63,"Late Call-Up"],["Jo Hyeon-woo","GK",72,78,"Reflex King"],
+  ["Kim Seung-gyu","GK",70,72,"Veteran Wall"],["Song Bum-keun","GK",68,66,"Rookie Gloves"]
+ ],
+ "Brazil":[
+  ["Neymar","FW",72,93,"Rainbow Flick",0],["Vinícius Júnior","FW",86,92,"Samba Stepover"],
+  ["Raphinha","FW",86,87,"Cut-Inside Cannon"],["Matheus Cunha","FW",84,82,"Restless Roamer"],
+  ["Gabriel Martinelli","FW",86,82,"Flank Flash"],["Endrick","FW",82,84,"Teen Phenom"],
+  ["Luiz Henrique","FW",84,78,"Dribble Burst"],["Rayan","FW",80,80,"Next-Gen Spark"],
+  ["Igor Thiago","FW",80,74,"Box Pest"],["Bruno Guimarães","MF",88,86,"Box-to-Box Maestro"],
+  ["Lucas Paquetá","MF",82,84,"Silky Roam"],["Casemiro","MF",80,84,"Tackle Machine"],
+  ["Fabinho","MF",76,78,"Anchor"],["Danilo Santos","MF",82,74,"Young Engine"],
+  ["Marquinhos","DF",80,86,"Captain Calm",1],["Gabriel Magalhães","DF",82,82,"Aerial Lockdown"],
+  ["Bremer","DF",84,80,"Brick Wall"],["Wesley","DF",84,74,"Roma Rocket"],
+  ["Alex Sandro","DF",74,78,"Veteran Overlap"],["Douglas Santos","DF",80,72,"Left-Lane Runner"],
+  ["Léo Pereira","DF",78,72,"Calm Stopper"],["Roger Ibañez","DF",80,72,"Quick Recovery"],
+  ["Danilo Luiz","DF",78,78,"Utility Shield"],["Alisson","GK",78,88,"Sweeper Keeper"],
+  ["Ederson","GK",74,84,"Laser Distribution"],["Weverton","GK",68,70,"Safe Hands"]
+ ],
+ "United States":[
+  ["Christian Pulisic","FW",84,89,"Captain America Cut-In"],["Folarin Balogun","FW",82,82,"Poacher's Instinct"],
+  ["Tim Weah","FW",86,78,"Right-Wing Rocket"],["Ricardo Pepi","FW",82,78,"Super-Sub Sniper"],
+  ["Brenden Aaronson","FW",86,76,"Pressing Pest"],["Haji Wright","FW",80,74,"Powerful Runner"],
+  ["Alex Zendejas","FW",80,76,"Tricky Wide"],["Tyler Adams","MF",90,80,"Pressing Dynamo",1],
+  ["Weston McKennie","MF",86,82,"Box-Crashing Texan"],["Gio Reyna","MF",76,84,"Creative Spark"],
+  ["Malik Tillman","MF",82,82,"Silky Driver"],["Sebastian Berhalter","MF",80,72,"Tidy Mid"],
+  ["Cristian Roldan","MF",82,70,"Energy Sub"],["Antonee Robinson","DF",90,78,"Turbo Left Lane"],
+  ["Sergiño Dest","DF",82,80,"Roaming Fullback"],["Chris Richards","DF",82,76,"Aerial Duel King"],
+  ["Tim Ream","DF",70,74,"Veteran Reader"],["Miles Robinson","DF",82,72,"Quick Cover"],
+  ["Mark McKenzie","DF",80,72,"Ball-Player"],["Joe Scally","DF",82,72,"Steady Right"],
+  ["Auston Trusty","DF",80,72,"Left-Foot Stopper"],["Max Arfsten","DF",84,70,"Young Runner"],
+  ["Alex Freeman","DF",82,70,"Rising Back"],["Matt Turner","GK",72,78,"Shot-Stopper"],
+  ["Matt Freese","GK",70,72,"Cup Keeper"],["Chris Brady","GK",70,70,"Future No.1"]
+ ],
+ "New Zealand":[
+  ["Chris Wood","FW",80,82,"Premier League Battering Ram",1],["Kosta Barbarouses","FW",80,74,"Veteran Poacher"],
+  ["Ben Waine","FW",80,72,"Hard Runner"],["Eli Just","FW",80,72,"Wing Spark"],
+  ["Callum McCowatt","FW",78,72,"Quick Feet"],["Jesse Randall","FW",78,70,"Pace Threat"],
+  ["Ben Old","MF",82,78,"Young Spark"],["Marko Stamenic","MF",82,76,"Driving Mid"],
+  ["Joe Bell","MF",82,76,"Midfield Anchor"],["Sarpreet Singh","MF",78,78,"Technician"],
+  ["Matt Garbett","MF",80,74,"Box-to-Box"],["Ryan Thomas","MF",78,74,"Experienced Wide"],
+  ["Alex Rufer","MF",80,72,"Screen & Recycle"],["Lachlan Bayliss","MF",78,70,"Young Engine"],
+  ["Liberato Cacace","DF",86,76,"Marauding Left-Back"],["Michael Boxall","DF",80,70,"MLS Veteran"],
+  ["Tyler Bindon","DF",80,72,"Young Rock"],["Finn Surman","DF",78,70,"Composed Stopper"],
+  ["Nando Pijnaker","DF",78,68,"Aerial Block"],["Tommy Smith","DF",68,68,"Two-Cup Veteran"],
+  ["Tim Payne","DF",76,66,"Steady Right"],["Francis de Vries","DF",78,68,"Set-Piece Left"],
+  ["Callan Elliot","DF",76,66,"Utility Back"],["Alex Paulsen","GK",70,74,"Young Gloves"],
+  ["Max Crocombe","GK",70,70,"Shot-Stopper"],["Oliver Sail","GK",68,66,"Third Keeper"]
+ ],
+ "France":[
+  ["Kylian Mbappé","FW",88,95,"Turbo Boost",1],["Ousmane Dembélé","FW",84,88,"Two-Footed Twister"],
+  ["Michael Olise","FW",82,86,"Wand of a Right Foot"],["Bradley Barcola","FW",86,80,"Pace Merchant"],
+  ["Marcus Thuram","FW",84,80,"Mobile Target"],["Rayan Cherki","FW",78,84,"Trickster"],
+  ["Désiré Doué","FW",82,82,"Fearless Teen"],["Maghnes Akliouche","FW",82,78,"Smooth Operator"],
+  ["Jean-Philippe Mateta","FW",82,76,"Power Finisher"],["N'Golo Kanté","MF",90,84,"Ball-Winning Engine"],
+  ["Aurélien Tchouaméni","MF",86,84,"Defensive Metronome"],["Adrien Rabiot","MF",84,80,"Box-to-Box Glider"],
+  ["Manu Koné","MF",86,78,"Athletic Carrier"],["Warren Zaïre-Emery","MF",86,80,"Teen Engine"],
+  ["William Saliba","DF",86,86,"Elegant Sweeper"],["Ibrahima Konaté","DF",86,80,"Pace & Power"],
+  ["Dayot Upamecano","DF",86,78,"Aggressive Stopper"],["Jules Koundé","DF",86,80,"Hybrid Fullback"],
+  ["Theo Hernandez","DF",88,80,"Left-Lane Express"],["Lucas Hernandez","DF",80,76,"Versatile Defender"],
+  ["Malo Gusto","DF",86,74,"Energetic Right"],["Maxence Lacroix","DF",80,72,"No-Nonsense Block"],
+  ["Lucas Digne","DF",78,76,"Set-Piece Whip"],["Mike Maignan","GK",76,86,"Commanding Keeper"],
+  ["Brice Samba","GK",72,74,"Reflex Sub"],["Robin Risser","GK",68,70,"Future Gloves"]
+ ],
+ "Argentina":[
+  ["Lionel Messi","FW",64,99,"Slow-Walk Assassin",1],["Lautaro Martínez","FW",84,86,"El Toro Strike"],
+  ["Julián Álvarez","FW",88,86,"Relentless Spider"],["Nico González","FW",84,78,"Direct Runner"],
+  ["Thiago Almada","FW",82,80,"Left-Foot Spark"],["Giuliano Simeone","FW",88,74,"Cholo Jr Energy"],
+  ["Nico Paz","FW",80,82,"Future Heir"],["José Manuel López","FW",80,74,"Poacher Sub"],
+  ["Rodrigo De Paul","MF",90,82,"Messi's Bodyguard"],["Alexis Mac Allister","MF",86,86,"Tempo Conductor"],
+  ["Enzo Fernández","MF",86,86,"Range Passer"],["Leandro Paredes","MF",78,80,"Deep Spray"],
+  ["Giovani Lo Celso","MF",80,80,"Pocket Creator"],["Exequiel Palacios","MF",84,78,"Two-Way Mid"],
+  ["Valentín Barco","MF",82,76,"Young Left Foot"],["Cristian Romero","DF",84,82,"Cuti Snarl"],
+  ["Lisandro Martínez","DF",84,80,"Carnicero Tackle"],["Nicolás Otamendi","DF",76,76,"Veteran General"],
+  ["Nahuel Molina","DF",84,76,"Overlapping Runner"],["Nicolás Tagliafico","DF",82,76,"Tenacious Left"],
+  ["Gonzalo Montiel","DF",80,72,"Penalty Hero"],["Leonardo Balerdi","DF",80,72,"Recovery Pace"],
+  ["Facundo Medina","DF",80,72,"Aggressive Cover"],["Emiliano Martínez","GK",78,88,"Penalty Mind-Games"],
+  ["Gerónimo Rulli","GK",72,74,"Sweeper Sub"],["Juan Musso","GK",70,72,"Safe Hands"]
+ ],
+
+ // ===== STAR PLAYERS (everyone else) =====
+ "Mexico":[["Santiago Giménez","FW",84,80,"Bebote Poach"],["Hirving Lozano","FW",84,82,"Chucky Burst"],["Raúl Jiménez","FW",80,78,"Hold-Up King"],["Edson Álvarez","MF",88,78,"Machine Shield",1],["Luis Malagón","GK",72,76,"New No.1"]],
+ "South Africa":[["Percy Tau","FW",82,80,"Lion Dribble"],["Lyle Foster","FW",82,76,"Pace Runner"],["Themba Zwane","MF",76,80,"Veteran Magician"],["Teboho Mokoena","MF",84,78,"Long-Range Bomb"],["Ronwen Williams","GK",76,80,"Shootout Hero",1]],
+ "Czechia":[["Patrik Schick","FW",80,84,"Towering Finish"],["Adam Hložek","FW",82,78,"Versatile Spark"],["Tomáš Souček","MF",86,76,"Late-Run Header"],["Ladislav Krejčí","DF",82,76,"Ball-Playing Rock"],["Jindřich Staněk","GK",72,74,"Safe Hands"]],
+ "Canada":[["Jonathan David","FW",84,84,"Iceman Finish"],["Cyle Larin","FW",80,76,"Aerial Threat"],["Alphonso Davies","DF",92,86,"Roadrunner Left Wing"],["Stephen Eustáquio","MF",84,80,"Tempo Setter"],["Tajon Buchanan","MF",86,76,"Flank Driver"]],
+ "Switzerland":[["Breel Embolo","FW",84,78,"Power Runner"],["Dan Ndoye","FW",86,78,"Wing Burst"],["Granit Xhaka","MF",82,84,"Left-Foot Spray",1],["Manuel Akanji","DF",84,82,"Calm Carrier"],["Yann Sommer","GK",74,84,"Reflex Specialist"]],
+ "Qatar":[["Akram Afif","FW",84,84,"Asian King Trickery"],["Almoez Ali","FW",82,78,"Record Poacher"],["Hassan Al-Haydos","MF",76,78,"Veteran Captain",1],["Boualem Khoukhi","DF",78,72,"Set-Piece Threat"],["Meshaal Barsham","GK",72,72,"Home Wall"]],
+ "Bosnia & Herzegovina":[["Edin Džeko","FW",74,82,"Evergreen Finish",1],["Ermedin Demirović","FW",82,78,"Mobile Striker"],["Miralem Pjanić","MF",72,82,"Maestro Dead-Ball"],["Sead Kolašinac","DF",84,74,"Tank Left-Back"],["Nikola Vasilj","GK",72,72,"Last Line"]],
+ "Morocco":[["Youssef En-Nesyri","FW",84,80,"Sky-High Header"],["Hakim Ziyech","MF",74,84,"Left-Foot Whip"],["Sofyan Amrabat","MF",88,78,"Cat Tackler"],["Achraf Hakimi","DF",92,86,"Rocket Right Lane",1],["Yassine Bounou","GK",76,84,"Bono Wall"]],
+ "Haiti":[["Frantzdy Pierrot","FW",80,74,"Target Man"],["Derrick Etienne","FW",82,74,"Wing Spark"],["Danley Jean Jacques","MF",82,72,"Engine"],["Ricardo Adé","DF",80,68,"Towering Block"],["Johnny Placide","GK",72,70,"Veteran Gloves"]],
+ "Scotland":[["Che Adams","FW",82,76,"Willing Runner"],["Scott McTominay","MF",88,80,"Late-Arriving Volley"],["John McGinn","MF",86,78,"Energizer"],["Andrew Robertson","DF",90,82,"Overlap Whip",1],["Angus Gunn","GK",72,74,"Shot-Stopper"]],
+ "Paraguay":[["Antonio Sanabria","FW",80,76,"Clever Striker"],["Julio Enciso","FW",80,82,"Young Wand"],["Miguel Almirón","MF",88,78,"Tireless Runner"],["Gustavo Gómez","DF",82,76,"Defensive Captain",1],["Omar Alderete","DF",80,72,"Aggressive Stopper"]],
+ "Australia":[["Mitchell Duke","FW",80,72,"Hard-Working Target"],["Jackson Irvine","MF",86,76,"Box-to-Box Captain",1],["Riley McGree","MF",82,76,"Set-Piece Spark"],["Harry Souttar","DF",80,72,"Giant Defender"],["Mathew Ryan","GK",74,80,"Socceroo Wall"]],
+ "Türkiye":[["Kenan Yıldız","FW",84,84,"Juve Jewel"],["Arda Güler","MF",76,88,"Right-Foot Genius"],["Hakan Çalhanoğlu","MF",82,86,"Deep-Lying Sniper",1],["Merih Demiral","DF",82,74,"Aerial Wall"],["Uğurcan Çakır","GK",76,80,"Reliable No.1"]],
+ "Germany":[["Kai Havertz","FW",84,82,"Lanky Glider"],["Jamal Musiala","MF",84,92,"Bambi Glide"],["Florian Wirtz","MF",84,90,"Between-the-Lines Wizard"],["Joshua Kimmich","MF",88,86,"Right-Side General",1],["Antonio Rüdiger","DF",86,80,"Aggressive Beast"]],
+ "Curaçao":[["Tahith Chong","MF",82,76,"Wing Dribbler"],["Leandro Bacuna","MF",80,74,"Veteran Leader",1],["Juninho Bacuna","MF",80,74,"Box Driver"],["Cuco Martina","DF",74,68,"Experienced Fullback"],["Eloy Room","GK",72,72,"Caribbean Wall"]],
+ "Ivory Coast":[["Sébastien Haller","FW",82,80,"Comeback Striker"],["Simon Adingra","FW",86,80,"Slippery Winger"],["Nicolas Pépé","FW",80,80,"Inverted Threat"],["Franck Kessié","MF",86,80,"Power Engine",1],["Evan Ndicka","DF",82,74,"Calm Stopper"]],
+ "Ecuador":[["Enner Valencia","FW",78,80,"Veteran Talisman",1],["Kendry Páez","MF",80,82,"Teen Sensation"],["Moisés Caicedo","MF",90,84,"Ball-Hawk Engine"],["Pervis Estupiñán","DF",86,78,"Left-Lane Whip"],["Piero Hincapié","DF",84,78,"Composed Stopper"]],
+ "Netherlands":[["Cody Gakpo","FW",84,84,"Long-Strider Cutting In"],["Memphis Depay","FW",78,84,"Confident Finisher"],["Frenkie de Jong","MF",86,88,"Glide & Carry"],["Xavi Simons","MF",84,84,"Restless Creator"],["Virgil van Dijk","DF",84,88,"Colossus Step-Up",1]],
+ "Japan":[["Kaoru Mitoma","FW",86,86,"Dribble Density"],["Takefusa Kubo","MF",82,86,"Right-Wing Magician"],["Wataru Endo","MF",88,78,"Tireless Anchor",1],["Daichi Kamada","MF",82,82,"Smooth Operator"],["Takehiro Tomiyasu","DF",82,78,"Versatile Defender"]],
+ "Sweden":[["Alexander Isak","FW",84,88,"Silky Long-Strider"],["Viktor Gyökeres","FW",88,84,"Bull Charge Finish"],["Anthony Elanga","FW",88,78,"Sprint Merchant"],["Dejan Kulusevski","MF",86,82,"Power Dribbler"],["Robin Olsen","GK",72,74,"Big Frame"]],
+ "Tunisia":[["Youssef Msakni","FW",74,80,"Veteran Wand",1],["Hannibal Mejbri","MF",86,78,"Fiery Engine"],["Aïssa Laïdouni","MF",86,76,"Combative Mid"],["Montassar Talbi","DF",80,72,"Solid Stopper"],["Aymen Dahmen","GK",72,74,"Reliable Gloves"]],
+ "Belgium":[["Romelu Lukaku","FW",82,82,"Bulldozer"],["Jérémy Doku","FW",88,84,"Stepover Storm"],["Kevin De Bruyne","MF",82,94,"Pinpoint Cross",1],["Amadou Onana","MF",88,78,"Powerhouse"],["Thibaut Courtois","GK",78,90,"Octopus Reach"]],
+ "Egypt":[["Mohamed Salah","FW",86,93,"Left-Foot Curler",1],["Omar Marmoush","FW",88,84,"Pace & Power"],["Trezeguet","FW",84,76,"Flank Worker"],["Mohamed Elneny","MF",80,76,"Tidy Anchor"],["Mostafa Mohamed","FW",82,74,"Combative Striker"]],
+ "Iran":[["Mehdi Taremi","FW",84,84,"Hold-Up & Strike"],["Sardar Azmoun","FW",80,80,"Persian Power"],["Alireza Jahanbakhsh","MF",82,78,"Wing Veteran",1],["Saman Ghoddos","MF",80,76,"Smart Link"],["Alireza Beiranvand","GK",74,74,"Long-Throw Wall"]],
+ "Spain":[["Lamine Yamal","FW",84,94,"Teen Phenom Cut-In"],["Nico Williams","FW",90,84,"Flank Afterburner"],["Pedri","MF",84,90,"Press-Resistant Genius"],["Rodri","MF",86,90,"Metronome Shield",1],["Unai Simón","GK",76,82,"Calm Distributor"]],
+ "Cape Verde":[["Ryan Mendes","FW",80,78,"Veteran Leader",1],["Garry Rodrigues","FW",80,78,"Tricky Winger"],["Jamiro Monteiro","MF",82,76,"Engine"],["Bebé","FW",78,74,"Surprise Package"],["Vozinha","GK",72,72,"Island Wall"]],
+ "Saudi Arabia":[["Salem Al-Dawsari","FW",84,82,"Left-Foot Hero",1],["Firas Al-Buraikan","FW",82,76,"Mobile Striker"],["Mohamed Kanno","MF",82,74,"Engine"],["Ali Al-Bulaihi","DF",80,70,"Fierce Marker"],["Mohammed Al-Owais","GK",74,74,"Green Wall"]],
+ "Uruguay":[["Darwin Núñez","FW",88,80,"Chaos Striker"],["Facundo Pellistri","FW",84,76,"Wing Burst"],["Federico Valverde","MF",92,88,"All-Action Rocket",1],["Rodrigo Bentancur","MF",84,80,"Press-Breaker"],["Ronald Araújo","DF",86,80,"Beast Defender"]],
+ "Iraq":[["Aymen Hussein","FW",80,74,"Target Striker"],["Ali Jasim","FW",80,76,"Young Spark"],["Ibrahim Bayesh","MF",80,72,"Engine"],["Rebin Sulaka","DF",78,70,"Stopper",1],["Jalal Hassan","GK",72,70,"Lions' Wall"]],
+ "Norway":[["Erling Haaland","FW",86,93,"Cyborg Poacher",1],["Alexander Sørloth","FW",84,80,"Giant Finisher"],["Antonio Nusa","FW",86,82,"Teen Dribbler"],["Martin Ødegaard","MF",82,88,"Captain's Vision"],["Sander Berge","MF",84,76,"Rangy Mid"]],
+ "Senegal":[["Sadio Mané","FW",84,86,"Lion Roar Run"],["Nicolas Jackson","FW",86,78,"Pace Poacher"],["Pape Matar Sarr","MF",86,80,"Box-to-Box Youth"],["Kalidou Koulibaly","DF",84,80,"Defensive General",1],["Édouard Mendy","GK",76,82,"Commanding Wall"]],
+ "Algeria":[["Amine Gouiri","FW",84,80,"Mobile Finisher"],["Riyad Mahrez","FW",78,88,"Left-Foot Curl",1],["Ismaël Bennacer","MF",84,82,"Press-Resistant"],["Houssem Aouar","MF",80,80,"Silky Mid"],["Aïssa Mandi","DF",80,74,"Experienced Stopper"]],
+ "Austria":[["Marko Arnautović","FW",76,78,"Cheeky Veteran"],["Christoph Baumgartner","MF",86,80,"Late Runs"],["Marcel Sabitzer","MF",86,82,"Driving Mid"],["Konrad Laimer","MF",90,78,"Pressing Machine"],["David Alaba","DF",80,84,"Versatile Maestro",1]],
+ "Jordan":[["Mousa Al-Tamari","FW",86,82,"Speedy Winger",1],["Yazan Al-Naimat","FW",82,76,"Striker Spark"],["Noor Al-Rawabdeh","MF",82,74,"Engine"],["Ehsan Haddad","DF",78,70,"Stopper"],["Yazeed Abu Layla","GK",72,72,"Last Line"]],
+ "Portugal":[["Cristiano Ronaldo","FW",76,90,"SIUUU Leap",1],["Rafael Leão","FW",88,84,"Long-Stride Burst"],["Bruno Fernandes","MF",86,89,"Risk-Pass Engine"],["Bernardo Silva","MF",86,88,"Pocket Magician"],["Vitinha","MF",88,84,"Spin & Glide"]],
+ "DR Congo":[["Yoane Wissa","FW",84,80,"Sharp Finisher"],["Silas Katompa","FW",84,78,"Wing Spark"],["Cédric Bakambu","FW",78,76,"Veteran Poacher"],["Chancel Mbemba","DF",82,76,"Leader at Back",1],["Arthur Masuaku","DF",82,74,"Marauding Left-Back"]],
+ "Uzbekistan":[["Eldor Shomurodov","FW",82,78,"Target Talisman",1],["Abbosbek Fayzullaev","MF",82,82,"Young Creator"],["Jaloliddin Masharipov","MF",80,78,"Tricky Wide"],["Khojimat Erkinov","MF",80,74,"Engine"],["Utkir Yusupov","GK",72,72,"White Wolves Wall"]],
+ "Colombia":[["Luis Díaz","FW",88,88,"Relentless Dribble"],["Jhon Durán","FW",84,80,"Power Cannon"],["James Rodríguez","MF",72,86,"Left-Foot Vision",1],["Richard Ríos","MF",86,80,"Rising Engine"],["Camilo Vargas","GK",74,76,"Reliable Wall"]],
+ "England":[["Harry Kane","FW",80,90,"Drop-Deep Sniper",1],["Bukayo Saka","FW",86,88,"Starboy Cut-In"],["Jude Bellingham","MF",88,92,"Hollywood Surge"],["Phil Foden","MF",84,88,"Pocket Maestro"],["Declan Rice","MF",90,84,"Engine & Set-Piece"]],
+ "Croatia":[["Andrej Kramarić","FW",78,80,"Clever Finisher"],["Luka Modrić","MF",76,90,"Outside-Foot Wand",1],["Mateo Kovačić","MF",84,84,"Glide Through Press"],["Joško Gvardiol","DF",88,82,"Ball-Carrying Beast"],["Dominik Livaković","GK",74,82,"Shootout Specialist"]],
+ "Ghana":[["Iñaki Williams","FW",90,80,"Blistering Pace"],["Jordan Ayew","FW",82,76,"Hard-Working Captain",1],["Mohammed Kudus","MF",86,86,"Explosive Trickster"],["Thomas Partey","MF",86,82,"Power Anchor"],["Mohammed Salisu","DF",82,74,"Solid Stopper"]],
+ "Panama":[["José Fajardo","FW",80,74,"Striker Spark"],["Adalberto Carrasquilla","MF",84,80,"Midfield Heartbeat"],["Aníbal Godoy","MF",80,72,"Veteran Engine",1],["Michael Murillo","DF",84,74,"Energetic Fullback"],["Orlando Mosquera","GK",74,74,"Canal Wall"]]
+};
+
+// Match results: {grp, home, away, hs, as}. Empty until games start — I fill these on update.
+const RESULTS = [];
+
+// Knockout bracket. Each match: [teamA, teamB, scoreA, scoreB]. null = TBD. I populate after group stage.
+const KO = {
+ r32:[ ["1A","2B",null,null],["1C","2F",null,null],["1E","2D",null,null],["1G","2H",null,null],
+       ["1I","2J",null,null],["1K","2L",null,null],["1B","2A",null,null],["1D","2G",null,null],
+       ["1F","2C",null,null],["1H","2I",null,null],["1J","2K",null,null],["1L","2E",null,null],
+       ["3rd","3rd",null,null],["3rd","3rd",null,null],["3rd","3rd",null,null],["3rd","3rd",null,null] ],
+ r16:Array(8).fill(0).map(()=>["TBD","TBD",null,null]),
+ qf: Array(4).fill(0).map(()=>["TBD","TBD",null,null]),
+ sf: Array(2).fill(0).map(()=>["TBD","TBD",null,null]),
+ f:  [["TBD","TBD",null,null]]
+};
+
+// Our teams — group path + honest outlook. tone: win(green)/draw(amber)/steal(red)/survive(grey)
+const FAVORITES=[
+ {team:"South Korea",group:"A",
+  path:[
+   {opp:"South Africa",tone:"win",label:"Must-win",why:"The group's most winnable game. This is the one that has to be three points."},
+   {opp:"Czechia",tone:"draw",label:"Draw or better",why:"The likely scrap for 2nd place. A draw keeps it alive; a win all but seals qualification."},
+   {opp:"Mexico",tone:"steal",label:"Nick a point",why:"Co-hosts and group favourites. Sit deep, spring Son on the counter, and steal what you can."}
+  ],
+  takes:"Realistic aim: 2nd place and a Round-of-32 ticket. Beat South Africa, avoid losing to Czechia, and frustrate Mexico. Because the 8 best third-placed teams also go through, even one win plus a draw would likely be enough — so there's a real safety net.",
+  ceiling:"Round of 16, with a quarter-final as the dream if the bracket opens up. A dangerous counter-attacking side built around Son Heung-min's farewell World Cup and Lee Kang-in's left foot — capable of upsetting anyone on a good night, but thin if Kim Min-jae has an off game at the back.",
+  watch:["Son Heung-min","Lee Kang-in","Kim Min-jae"]},
+ {team:"New Zealand",group:"G",
+  path:[
+   {opp:"Iran",tone:"draw",label:"Best chance",why:"Probably their likeliest result. Grind out a point or more here and the whole group cracks open."},
+   {opp:"Egypt",tone:"steal",label:"Steal a point",why:"Salah is the danger. Smother him, stay compact, and a draw would be huge."},
+   {opp:"Belgium",tone:"survive",label:"Damage control",why:"De Bruyne, Doku and Courtois — heavy favourites. Keep it tight and protect goal difference."}
+  ],
+  takes:"This is the mountain — the All Whites are the lowest-ranked side in the group. The honest dream is a best-third-place finish: scrape together ~3–4 points (a win, or a couple of draws) and keep the goal difference respectable. Chris Wood has to bury the handful of chances they create.",
+  ceiling:"A fun one for the kids: in 2010 New Zealand went unbeaten — three draws — and STILL flew home. In the new 48-team format, that same unbeaten run would very likely sneak them into the knockouts. Reaching the Round of 32 at all would be the greatest result in their football history; anything beyond is bonus.",
+  watch:["Chris Wood","Liberato Cacace","Marko Stamenic"]},
+ {team:"France",group:"I",
+  path:[
+   {opp:"Iraq",tone:"win",label:"Routine win",why:"Expected three points. Anything less would be a genuine shock."},
+   {opp:"Senegal",tone:"win",label:"Win it",why:"The trickiest test — Mané leads a physical, talented side. Win and top spot is in sight."},
+   {opp:"Norway",tone:"win",label:"Top-spot decider",why:"The headline act: France's defence vs Erling Haaland. Likely settles who wins the group."}
+  ],
+  takes:"France should win the group — the question is style, not survival. Handle Iraq, beat Senegal, and the Haaland showdown with Norway probably decides 1st place. Topping the group matters: it earns the friendlier side of the knockout bracket.",
+  ceiling:"Genuine title contenders. With Mbappé in his prime, ridiculous attacking depth and a world-class defence, anything short of the semi-finals would count as a disappointment. Final-or-bust is the fair expectation — they have the squad to win the whole thing.",
+  watch:["Kylian Mbappé","Ousmane Dembélé","William Saliba"]},
+ {team:"United States",group:"D",
+  path:[
+   {opp:"Paraguay",tone:"win",label:"Win the opener",why:"Home crowd, opening night — a fast start sets the tone. Paraguay are well-organised, so patience matters."},
+   {opp:"Australia",tone:"win",label:"Must-win",why:"Physical, disciplined Socceroos. This is the one the U.S. are expected to take to control the group."},
+   {opp:"Türkiye",tone:"draw",label:"Top-spot decider",why:"The group's most gifted opponent — Arda Güler and Çalhanoğlu pull the strings. Likely settles who finishes first."}
+  ],
+  takes:"As co-hosts with the crowd behind them, the bar is winning Group D — not just surviving it. Beat Paraguay and Australia, and the Türkiye game probably decides top spot. With 32 teams reaching the Round of 32, advancing is the floor; the real target is a seeding-friendly group win.",
+  ceiling:"A talented but streaky 'golden generation' — Pulisic, Balogun, McKennie, Adams — under Mauricio Pochettino, playing at home. Realistic baseline is the Round of 16; a quarter-final would match their best modern run and count as a real success. Semis would be the fairy tale, but host-nation pressure cuts both ways.",
+  watch:["Christian Pulisic","Folarin Balogun","Tyler Adams"]}
+];
+
+/* ============ LOGIC ============ */
+const POSCOL={GK:"var(--gk)",DF:"var(--df)",MF:"var(--mf)",FW:"var(--fw)"};
+const POSNAME={GK:"Goalkeeper",DF:"Defender",MF:"Midfielder",FW:"Forward"};
+
+function rarity(mp){
+ if(mp>=90) return {name:"Legendary",col:"#f5b301",grad:"linear-gradient(135deg,#f5b301,#ffd86b,#f59e0b)",txt:"#7a5200"};
+ if(mp>=80) return {name:"Epic",col:"#8b5cf6",grad:"linear-gradient(135deg,#8b5cf6,#c4b5fd,#7c3aed)",txt:"#4c2889"};
+ if(mp>=70) return {name:"Rare",col:"#3b82f6",grad:"linear-gradient(135deg,#3b82f6,#93c5fd,#2563eb)",txt:"#1e40af"};
+ return {name:"Common",col:"#94a3b8",grad:"linear-gradient(135deg,#cbd5e1,#e2e8f0,#94a3b8)",txt:"#475569"};
+}
+function stars(n){ let s=""; for(let i=1;i<=5;i++){ s += i<=n?"★":(i-0.5===n?"⯨":"☆"); } return s.replace(/⯨/g,"⯪"); }
+function starStr(n){ const full=Math.floor(n); const half=n-full>=0.5; let s="★".repeat(full); if(half)s+="½"; s+="☆".repeat(5-full-(half?1:0)); return s; }
+
+// ---- standings ----
+function computeTable(grp){
+ const teams=GROUPS[grp];
+ const row={}; teams.forEach(t=>row[t]={t,P:0,W:0,D:0,L:0,GF:0,GA:0,Pts:0});
+ RESULTS.filter(r=>r.grp===grp).forEach(r=>{
+   const h=row[r.home], a=row[r.away]; if(!h||!a)return;
+   h.P++;a.P++; h.GF+=r.hs;h.GA+=r.as; a.GF+=r.as;a.GA+=r.hs;
+   if(r.hs>r.as){h.W++;a.L++;h.Pts+=3;} else if(r.hs<r.as){a.W++;h.L++;a.Pts+=3;} else {h.D++;a.D++;h.Pts++;a.Pts++;}
+ });
+ return teams.map(t=>row[t]).sort((x,y)=> y.Pts-x.Pts || (y.GF-y.GA)-(x.GF-x.GA) || y.GF-x.GF || x.t.localeCompare(y.t));
+}
+
+function renderGroups(){
+ const wrap=document.getElementById("groupsGrid"); wrap.innerHTML="";
+ Object.keys(GROUPS).forEach(g=>{
+  const tbl=computeTable(g);
+  const fixtures=RESULTS.filter(r=>r.grp===g);
+  let rows=tbl.map((r,i)=>{
+    const fl=TEAMS[r.t][0];
+    return `<tr class="${i<2?'qual':''}">
+      <td class="teamcol tt" data-team="${r.t}" onclick="openTeam('${r.t.replace(/'/g,"\\'")}')"><span class="pos">${i+1}</span>${fl} ${r.t}</td>
+      <td>${r.P}</td><td>${r.W}</td><td>${r.D}</td><td>${r.L}</td><td>${r.GF}:${r.GA}</td>
+      <td><b>${r.Pts}</b></td></tr>`;
+  }).join("");
+  let fx = fixtures.length? `<div class="fx">${fixtures.map(r=>`<div class="frow"><span><b>${r.home}</b> v <b>${r.away}</b></span><span class="sc">${r.hs}–${r.as}</span></div>`).join("")}</div>`:"";
+  wrap.insertAdjacentHTML("beforeend",`
+   <div class="gcard">
+     <div class="ghead">Group ${g} <span class="gtag">${fixtures.length} played</span></div>
+     <table class="stand"><thead><tr><th class="teamcol">Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF:GA</th><th>Pts</th></tr></thead><tbody>${rows}</tbody></table>
+     ${fx}
+   </div>`);
+ });
+}
+
+function renderTeamsGrid(){
+ const wrap=document.getElementById("teamsGrid"); wrap.innerHTML="";
+ // group order, then within group
+ Object.keys(GROUPS).forEach(g=>GROUPS[g].forEach(t=>{
+   const [fl,conf,st,col]=TEAMS[t];
+   wrap.insertAdjacentHTML("beforeend",`
+    <div class="tcard" onclick="openTeam('${t.replace(/'/g,"\\'")}')">
+      <div class="strip" style="background:${col}"></div>
+      <div class="fl">${fl}</div><div class="nm">${t}</div>
+      <div class="gp">Group ${g} · ${conf}</div>
+      <div class="st">${starStr(st)}</div>
+    </div>`);
+ }));
+}
+
+// deterministic cartoon avatar (unique-ish per player, team-kit colours)
+function hashStr(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
+function darken(hex,f){const n=parseInt(hex.slice(1),16);let r=(n>>16)&255,g=(n>>8)&255,b=n&255;return `rgb(${Math.round(r*f)},${Math.round(g*f)},${Math.round(b*f)})`;}
+function avatarSVG(name,pos,team,size){
+ const h=hashStr(name);
+ const skins=["#f8d5c2","#f1c9a5","#e3ab76","#c68642","#8d5524","#5c3a21"];
+ const hairC=["#1a1208","#3a241a","#6b4423","#a8702f","#d9b44a","#9a9a9a","#101010","#caa0ff","#e0563f"];
+ const skin=skins[h%skins.length];
+ const hc=hairC[(h>>3)%hairC.length];
+ const style=(h>>6)%6;
+ const jersey = pos==="GK" ? "#16d181" : TEAMS[team][3];
+ const collar = darken(jersey,0.68);
+ let hair="";
+ if(style===0) hair=`<path d="M28 41 Q29 18 50 18 Q71 18 72 41 Q72 29 50 27 Q28 29 28 41Z" fill="${hc}"/>`;
+ else if(style===1) hair=`<path d="M30 33 Q30 20 50 20 Q70 20 70 33 L70 30 Q50 24 30 30Z" fill="${hc}"/>`;
+ else if(style===2) hair=`<circle cx="50" cy="32" r="23" fill="${hc}"/>`;
+ else if(style===3) hair=`<path d="M27 44 Q27 16 50 16 Q73 16 73 44 L73 54 Q67 41 50 41 Q33 41 27 54Z" fill="${hc}"/>`;
+ else if(style===4) hair="";
+ else hair=`<path d="M31 38 Q33 21 50 21 Q67 21 69 38 Q60 27 50 27 Q40 27 31 38Z" fill="${hc}"/><rect x="46" y="11" width="8" height="15" rx="3" fill="${hc}"/>`;
+ const s=size||78;
+ return `<svg viewBox="0 0 100 100" width="${s}" height="${s}" aria-hidden="true">
+   <path d="M15 100 Q15 70 37 63 L63 63 Q85 70 85 100 Z" fill="${jersey}"/>
+   <path d="M37 63 L50 75 L63 63 Z" fill="${collar}"/>
+   <rect x="44" y="56" width="12" height="11" fill="${skin}"/>
+   ${style===2?hair:""}
+   <circle cx="30" cy="45" r="4" fill="${skin}"/><circle cx="70" cy="45" r="4" fill="${skin}"/>
+   <ellipse cx="50" cy="43" rx="19" ry="21" fill="${skin}"/>
+   ${style!==2?hair:""}
+   <ellipse cx="43" cy="44" rx="2.4" ry="3" fill="#26211c"/><ellipse cx="57" cy="44" rx="2.4" ry="3" fill="#26211c"/>
+   <path d="M43 53 Q50 59 57 53" stroke="${darken(skin,0.6)}" stroke-width="2" fill="none" stroke-linecap="round"/>
+ </svg>`;
+}
+function playerCardHTML(p,team){
+ const [name,pos,hp,mp,special,cap]=p;
+ const r=rarity(mp); const pc=POSCOL[pos];
+ const art = `<span class="avwrap">${avatarSVG(name,pos,team)}</span>`;
+ return `
+ <div class="pcard" style="background:${r.grad}" onclick='openCard(${JSON.stringify(p).replace(/'/g,"&#39;")},"${team.replace(/"/g,'&quot;')}")'>
+   <div class="inner">
+     <div class="holo"></div>
+     <div class="rarity" style="background:${r.col};color:#fff">${r.name}</div>
+     <div class="ctop">
+       <div><div class="pname">${name}${cap?'<span class="capbadge">C</span>':''}</div>
+         <span class="posbadge" style="background:${pc}">${pos}</span></div>
+       <div class="hp">HP<b>${hp}</b></div>
+     </div>
+     <div class="art">${art}</div>
+     <div class="bars">
+       <div class="barrow"><span class="lab">HP</span><span class="bartrack"><span class="barfill" style="width:${hp}%;background:#ef4444"></span></span><span class="barval">${hp}</span></div>
+       <div class="barrow"><span class="lab">MP</span><span class="bartrack"><span class="barfill" style="width:${mp}%;background:#2563eb"></span></span><span class="barval">${mp}</span></div>
+     </div>
+     <div class="special"><div class="slab">⚡ Signature Move</div><div class="sname">${special}</div></div>
+     <div class="club">${TEAMS[team][0]} ${team} · ${POSNAME[pos]}</div>
+   </div>
+ </div>`;
+}
+
+function openTeam(t){
+ setView("teams");
+ document.getElementById("teamsList").style.display="none";
+ const d=document.getElementById("teamDetail"); d.style.display="block";
+ const [fl,conf,st,col]=TEAMS[t];
+ const grp=Object.keys(GROUPS).find(g=>GROUPS[g].includes(t));
+ const pl=(PLAYERS[t]||[]).slice().sort((a,b)=>{const o={GK:0,DF:1,MF:2,FW:3};return o[a[1]]-o[b[1]]||b[3]-a[3];});
+ const full=pl.length>=18;
+ const avgHP=Math.round(pl.reduce((s,p)=>s+p[2],0)/pl.length);
+ const avgMP=Math.round(pl.reduce((s,p)=>s+p[3],0)/pl.length);
+ d.innerHTML=`
+  <button class="back" onclick="closeTeam()">← All teams</button>
+  <div class="thead" style="border-top:5px solid ${col}">
+    <div class="bigfl">${fl}</div>
+    <div class="tinfo"><h2>${t}</h2>
+      <div class="meta">Group ${grp} · ${conf}</div>
+      <div class="stars">${starStr(st)}</div></div>
+    <div class="tstats">
+      <div class="tstat"><div class="v">${avgHP}</div><div class="l">Avg HP</div></div>
+      <div class="tstat"><div class="v">${avgMP}</div><div class="l">Avg MP</div></div>
+      <div class="tstat"><div class="v">${pl.length}</div><div class="l">Cards</div></div>
+    </div>
+  </div>
+  <div class="squad-note">${full?'📋 Full squad':'⭐ Star players — ask me to "flesh out the full '+t+' squad" anytime'}</div>
+  <div class="cards-grid">${pl.map(p=>playerCardHTML(p,t)).join("")}</div>`;
+ window.scrollTo(0,0);
+}
+function closeTeam(){
+ document.getElementById("teamDetail").style.display="none";
+ document.getElementById("teamsList").style.display="block";
+}
+function openCard(p,team){
+ const m=document.getElementById("modal"); document.getElementById("modalBody").innerHTML=playerCardHTML(p,team);
+ m.classList.add("open");
+}
+
+function teamShort(code){
+ // code like "1A","2B","3rd","TBD" -> friendly label
+ if(code==="TBD")return "TBD";
+ if(code==="3rd")return "Best 3rd";
+ const pos=code[0], g=code[1];
+ return (pos==="1"?"Winner ":"Runner-up ")+"Grp "+g;
+}
+function koMatchHTML(m){
+ const [a,b,as,bs]=m;
+ const aw=as!=null&&bs!=null&&as>bs, bw=as!=null&&bs!=null&&bs>as;
+ const lab=c=>TEAMS[c]?`${TEAMS[c][0]} ${c}`:teamShort(c);
+ const tbd=c=>!TEAMS[c];
+ return `<div class="bmatch">
+   <div class="bteam ${aw?'win':''} ${tbd(a)?'tbd':''}"><span>${lab(a)}</span><span class="bs">${as!=null?as:''}</span></div>
+   <div class="bteam ${bw?'win':''} ${tbd(b)?'tbd':''}"><span>${lab(b)}</span><span class="bs">${bs!=null?bs:''}</span></div>
+ </div>`;
+}
+function renderBracket(){
+ const b=document.getElementById("bracket");
+ const cols=[["Round of 32",KO.r32],["Round of 16",KO.r16],["Quarter-finals",KO.qf],["Semi-finals",KO.sf],["Final",KO.f]];
+ b.innerHTML=cols.map(([title,ms])=>`
+   <div class="bcol"><h4>${title}</h4>${ms.map(m=>title==="Final"?`<div class="bmatch final-card">${koMatchHTML(m).replace('<div class="bmatch">','').replace(/<\/div>$/,'')}</div>`:koMatchHTML(m)).join("")}</div>`).join("");
+}
+
+/* favorites + tooltip */
+function strengthLabel(s){ if(s>=5)return "Title contender"; if(s>=4.5)return "Contender"; if(s>=4)return "Dark horse"; if(s>=3.5)return "Solid side"; if(s>=3)return "Outsider"; if(s>=2)return "Underdog"; return "Long shot"; }
+function toneColor(t){ return t==="win"?"#16a34a":t==="draw"?"#f59e0b":t==="steal"?"#ef4444":"#64748b"; }
+function openCardByName(team,name){ const p=(PLAYERS[team]||[]).find(x=>x[0]===name); if(p)openCard(p,team); }
+function renderFavorites(){
+ const wrap=document.getElementById("favList");
+ wrap.innerHTML=FAVORITES.map(f=>{
+   const [fl,conf,st,col]=TEAMS[f.team];
+   const rows=f.path.map(r=>{
+     const [ofl,oconf,ost]=TEAMS[r.opp];
+     return `<div class="pathrow">
+        <span class="pflag">${ofl}</span><span class="popp">${r.opp}</span>
+        <span class="poppst" title="${r.opp}: ${ost} stars">${starStr(ost)}</span>
+        <span class="tgt" style="background:${toneColor(r.tone)}">${r.label}</span>
+        <span class="pwhy">${r.why}</span></div>`;
+   }).join("");
+   const chips=f.watch.map(n=>`<span class="chip" onclick="openCardByName('${f.team.replace(/'/g,"\\'")}','${n.replace(/'/g,"\\'")}')">⭐ ${n}</span>`).join("");
+   return `<div class="fav">
+     <div class="fhead" style="background:linear-gradient(135deg,${col},${darken(col,0.55)})">
+       <span class="ffl">${fl}</span>
+       <div><h3>${f.team}</h3><div class="fmeta">Group ${f.group} · ${conf} · ${strengthLabel(st)}</div>
+         <div class="fstars">${starStr(st)}</div></div></div>
+     <div class="body">
+       <h5>📋 Group ${f.group} path — game by game</h5>${rows}
+       <h5>🎯 What it takes</h5><div class="blurb">${f.takes}</div>
+       <h5>🔮 How far can they go?</h5><div class="ceil">${f.ceiling}</div>
+       <h5>👀 Watch these (tap a card)</h5><div class="watchchips">${chips}</div>
+     </div></div>`;
+ }).join("");
+}
+const _tip=document.getElementById("tip");
+function moveTip(e){ const x=Math.min(e.clientX+14, window.innerWidth-210); _tip.style.left=x+"px"; _tip.style.top=(e.clientY+16)+"px"; }
+function showTip(e){ const el=e.target.closest("[data-team]"); if(!el){return;} const t=el.getAttribute("data-team"); const m=TEAMS[t]; if(!m)return;
+ const [fl,conf,stv]=m;
+ _tip.innerHTML=`<div style="font-size:22px;line-height:1.1">${fl}</div><b>${t}</b><br><span style="color:#ffd86b;letter-spacing:1px">${starStr(stv)}</span> <span style="opacity:.75">${stv}/5</span><br><span style="opacity:.7;font-size:11px">${conf} · ${strengthLabel(stv)}</span>`;
+ _tip.style.opacity="1"; moveTip(e); }
+function hideTip(){ _tip.style.opacity="0"; }
+
+/* tabs */
+function setView(v){
+ document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active",t.dataset.v===v));
+ document.querySelectorAll(".view").forEach(el=>el.classList.toggle("active",el.id==="view-"+v));
+ if(v==="teams"){closeTeam();}
+}
+document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>setView(t.dataset.v)));
+document.getElementById("modclose").addEventListener("click",()=>document.getElementById("modal").classList.remove("open"));
+document.getElementById("modal").addEventListener("click",e=>{if(e.target.id==="modal")e.target.classList.remove("open");});
+
+/* tooltip wiring (groups view) */
+const _gg=document.getElementById("groupsGrid");
+_gg.addEventListener("mouseover",showTip);
+_gg.addEventListener("mousemove",e=>{ if(_tip.style.opacity==="1") moveTip(e); });
+_gg.addEventListener("mouseout",e=>{ if(!e.relatedTarget||!e.relatedTarget.closest||!e.relatedTarget.closest("[data-team]")) hideTip(); });
+
+/* init */
+document.getElementById("lastup").textContent=LAST_UPDATED;
+renderGroups(); renderTeamsGrid(); renderBracket(); renderFavorites();
+</script>
+</body>
+</html>
